@@ -47,19 +47,25 @@ class lexicon:
         print("Residuals : {} %".format((1-kept/self.N_)*100))
         self.forge_dictionnary()
 
-    def get_sequence(self, start, length):
+    def get_sequence(self, start, length, asarray=True):
         
         def word_to_vector(word):
             if word not in self.encoder.keys(): word = "_OTHER_"
             indx = self.encoder[word]
+            if not asarray:
+                return indx
             tmp = np.zeros(len(self.corpus)+1)
             tmp[indx] = 1
             return tmp
         
         return [word_to_vector(i) for i in self.parsed_text[start:start+length]]
         
-    def decode(self, sequence):
-        indx_sequence = np.argmax(sequence, axis=1)
+    def decode(self, sequence, remove_other=False):
+        if not remove_other:
+            indx_sequence = np.argmax(sequence, axis=1)
+        else:
+            indx_sequence = np.argmax([e[:len(self.corpus)] for e in sequence], axis=1)
         return map(lambda x: self.decoder[x], indx_sequence)
     
-mylex = lexicon(parse(open_text()))
+TrumpLex = lexicon(parse(open_text()))
+TrumpLex.keep_most_common(1000)
